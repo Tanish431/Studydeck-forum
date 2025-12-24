@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>#{{ tag.name }}</h2>
+
+<ul>
+  {% for thread in threads %}
+    <li>
+      <a href="{% url 'forum:thread_detail' thread.pk %}">
+        {{ thread.title }}
+      </a>
+    </li>
+  {% empty %}
+    <li>No threads for this tag.</li>
+  {% endfor %}
+</ul>
+{% endblock %}

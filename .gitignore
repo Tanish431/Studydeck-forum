@@ -1,0 +1,102 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+dist/
+downloads/
+.eggs/
+*.egg-info/
+*.egg
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Virtual environments
+env/
+venv/
+venv*/
+.env/
+.venv/
+ENV/
+env.bak/
+*.venv/
+
+# Django
+# It's recommended to keep migrations in version control.
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment variables
+.env
+*.env
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# Pytest / testing
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Coverage and profiling
+coverage.xml
+nosetests.xml
+
+# Jupyter
+.ipynb_checkpoints
+
+# Mypy
+.mypy_cache/
+
+# Pyre
+.pyre/
+
+# Sphinx
+docs/_build/
+
+# Misc
+*.swp
+*~
+*.bak
+*.tmp
+
+# node (if any frontend build tools are used)
+node_modules/
+
+# Logs
+logs/
+*.log
+
+# celery
+celerybeat-schedule
+
+# Local IDE or build caches
+.cache/
+
+# Ignore compiled dist, wheel, eggs
+*.whl
+*.egg
+

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Forum Categories</h1>
+
+<ul>
+  {% for category in categories %}
+    <li>
+      <strong>{{ category.name }}</strong><br>
+      <small>{{ category.description }}</small>
+    </li>
+  {% empty %}
+    <li>No categories yet.</li>
+  {% endfor %}
+</ul>
+{% endblock %}
