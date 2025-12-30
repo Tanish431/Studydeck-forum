@@ -1,4 +1,5 @@
 {% extends "base.html" %} {% block content %}
+{% load markdown_extras %} 
 <h2>{{ thread.title }}</h2>
 {% if thread.is_locked %}
 <span style="color: red">🔒 Locked</span>
@@ -9,7 +10,8 @@
     · {{ thread.created_at }}
 </p>
 
-<p>{{ thread.content }}</p>
+<div>{{ thread.content|markdownify|safe }}</div>
+
 <form method="post" action="{% url 'forum:thread_like' thread.id %}">
     {% csrf_token %}
     <button type="submit">
@@ -32,13 +34,14 @@
 <h3>Replies</h3>
 
 <ul>
-    {% for reply in replies %}
+    {% for reply in page_obj %}
     <li>
         {% if reply.is_deleted %}
         <em>[This reply was deleted]</em>
         {% else %}
         <strong>{{ reply.author }}</strong> · {{ reply.created_at }}<br />
-        {{ reply.content }} {% if user.is_authenticated %}
+        <div>{{ reply.content|markdownify|safe }}</div>
+        {% if user.is_authenticated %}
         <div class="reply-actions">
             {% if reply.author == user or user.profile.is_moderator %}
             <form
@@ -68,8 +71,16 @@
     <li>No replies yet.</li>
     {% endfor %}
 </ul>
-
-{% if user.is_authenticated and not thread.is_locked %}
+{% if page_obj.has_other_pages %}
+<div>
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}">Prev</a>
+    {% endif %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    {% endif %}
+</div>
+{% endif %} {% if user.is_authenticated and not thread.is_locked %}
 <hr />
 <form method="post" action="{% url 'forum:reply_create' thread.id %}">
     {% csrf_token %}

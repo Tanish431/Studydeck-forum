@@ -1,39 +1,52 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
 
-{% block content %}
+<form method="get" action="{% url 'forum:search_threads' %}">
+    <input type="text" name="q" placeholder="Search threads…" />
+    <button type="submit">Search</button>
+</form>
+
+<hr />
 <h2>{{ category.name }}</h2>
 
-<a href="{% url 'forum:thread_create' category.slug %}">
-    Create Thread
-</a>
+<a href="{% url 'forum:thread_create' category.slug %}"> Create Thread </a>
+<div>
+  <strong>Sort by:</strong>
+
+  <a href="?sort=latest" {% if sort == "latest" %} style="font-weight:bold"{% endif %}>Latest</a>
+  |
+  <a href="?sort=popular"
+     {% if sort == "popular" %}style="font-weight:bold"{% endif %}>
+     Most Liked
+  </a>
+</div>
+
+<hr>
 
 <ul>
-  {% for thread in page_obj %}
+    {% for thread in page_obj %}
     <li>
-      <a href="{% url 'forum:thread_detail' thread.pk %}">
-        {{ thread.title }}
-      </a>
-      <br>
-      <small>
-        by {{ thread.author }} · {{ thread.created_at }}
-      </small>
+        <a href="{% url 'forum:thread_detail' thread.pk %}">
+            {{ thread.title }}
+        </a>
+        <br />
+        <small> by {{ thread.author }} · {{ thread.created_at }} </small>
     </li>
-  {% empty %}
+    {% empty %}
     <li>No threads yet.</li>
-  {% endfor %}
+    {% endfor %}
 </ul>
 
 {% if page_obj.has_other_pages %}
-  <div>
+<div>
     {% if page_obj.has_previous %}
-      <a href="?page={{ page_obj.previous_page_number }}">Prev</a>
-    {% endif %}
-
-    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-
+    <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}">Prev</a>
+    {% endif %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
     {% if page_obj.has_next %}
-      <a href="?page={{ page_obj.next_page_number }}">Next</a>
+    <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}">Next</a>
     {% endif %}
-  </div>
+</div>
 {% endif %}
+<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
+<hr />
+
 {% endblock %}

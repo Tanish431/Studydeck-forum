@@ -1,16 +1,24 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<form method="get" action="{% url 'forum:search_threads' %}">
+    <input type="text" name="q" placeholder="Search threads…" />
+    <button type="submit">Search</button>
+</form>
 
-{% block content %}
+<hr />
+
 <h1>Forum Categories</h1>
 
 <ul>
-  {% for category in categories %}
+    {% for category in categories %}
     <li>
-      <strong>{{ category.name }}</strong><br>
-      <small>{{ category.description }}</small>
+        <a href="{% url 'forum:thread_list' category.slug %}">
+            <strong>{{ category.name }}</strong> </a
+        ><br />
+        <small>{{ category.description }}</small>
     </li>
-  {% empty %}
+
+    {% empty %}
     <li>No categories yet.</li>
-  {% endfor %}
+    {% endfor %}
 </ul>
 {% endblock %}

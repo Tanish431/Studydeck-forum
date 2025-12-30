@@ -1,0 +1,37 @@
+{% extends "base.html" %} {% block content %}
+
+<h2>Search Results</h2>
+
+<form method="get">
+    <input
+        type="text"
+        name="q"
+        value="{{ query }}"
+        placeholder="Search threads..."
+    />
+    <button type="submit">Search</button>
+</form>
+
+<hr />
+
+{% if threads %}
+<ul>
+    {% for thread in threads %}
+    <li>
+        <a href="{% url 'forum:thread_detail' thread.pk %}">
+            {{ thread.title }}
+        </a>
+        <br />
+        <small>
+            {{ thread.category.name }} · 👍 {{ thread.likes.count }}
+        </small>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No matching threads.</p>
+{% endif %}
+<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
+<hr />
+
+ {% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Pending Reports</h2>
+
+{% if reports %}
+  <ul>
+    {% for report in reports %}
+      <li>
+        <strong>Reported by:</strong> {{ report.reporter }} <br>
+
+        {% if report.thread %}
+          <strong>Thread:</strong>
+          <a href="{% url 'forum:thread_detail' report.thread.pk %}">
+            {{ report.thread.title }}
+          </a>
+        {% endif %}
+
+        {% if report.reply %}
+          <strong>Reply in:</strong>
+          <a href="{% url 'forum:thread_detail' report.reply.thread.pk %}">
+            {{ report.reply.thread.title }}
+          </a>
+        {% endif %}
+
+        <p><strong>Reason:</strong> {{ report.reason }}</p>
+
+        <form method="post" action="{% url 'admin:forum_report_change' report.pk %}">
+          {% csrf_token %}
+          <button type="submit">
+            Resolve in Admin
+          </button>
+        </form>
+
+        <hr>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No pending reports 🎉</p>
+{% endif %}
+
+{% endblock %}

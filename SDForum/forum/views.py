@@ -2,7 +2,11 @@ from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponseForbidden
-from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag
+from django.urls import reverse
+from django.contrib.postgres.search import TrigramSimilarity
+from django.db.models import Q, Count
+from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag, Mention
+from .utils import extract_mentions
 
 def category_list(request):
     categories = Category.objects.all()
@@ -12,7 +16,13 @@ def category_list(request):
 
 def thread_list(request, slug):
     category = get_object_or_404(Category, slug = slug)
+    sort = request.GET.get("sort", "latest")
     threads = category.threads.select_related("author") # type: ignore
+
+    if sort == "popular":
+        threads = threads.annotate(
+            like_count = Count("likes")
+        ).order_by("-like_count", "-created_at")
 
     paginator = Paginator(threads, 10)
     page_number = request.GET.get("page")
@@ -21,6 +31,7 @@ def thread_list(request, slug):
     return render(request, "forum/thread_list.html", {
         "category":category,
         "page_obj":page_obj,
+        "sort":sort,
     })
 
 def thread_detail(request, pk):
@@ -28,15 +39,23 @@ def thread_detail(request, pk):
         Thread.objects.select_related("author", "category"),
         pk = pk
     )
-    replies = thread.replies.select_related("author") # type: ignore
+    replies_qs = (
+        thread.replies # type: ignore
+        .select_related("author")
+        .filter(is_deleted=False)
+    )
 
-    user_thread_like = None
+    paginator = Paginator(replies_qs, 10)  # 10 replies per page
+    page_number = request.GET.get("page")
+    page_obj = paginator.get_page(page_number)
+
+    user_thread_like = False
     if request.user.is_authenticated:
-        user_thread_like = thread.likes.filter(user=request.user).exists()
+        user_thread_like = thread.likes.filter(user=request.user).exists() # type: ignore
 
     return render(request, "forum/thread_detail.html", {
         "thread": thread,
-        "replies": replies,
+        "page_obj": page_obj,
         "user_thread_like": user_thread_like,
     })
 
@@ -64,6 +83,13 @@ def thread_create(request, slug):
                         defaults={"slug": name.replace(" ", "-")}
                     )
                     thread.tags.add(tag)
+            mentioned_users = extract_mentions(content)
+            for user in mentioned_users:
+                if user != request.user:
+                    Mention.objects.create(
+                        mentioned_user=user,
+                        thread=thread
+                    )
             return redirect("forum:thread_list", slug=category.slug)
     return render (request, "forum/thread_create.html", {
         "category":category
@@ -72,7 +98,6 @@ def thread_create(request, slug):
 @login_required
 def reply_create(request, thread_id):
     thread = get_object_or_404(Thread, pk=thread_id)
-    
     if thread.is_locked:
         return HttpResponseForbidden("Thread is locked.")
     
@@ -84,6 +109,19 @@ def reply_create(request, thread_id):
                 thread = thread,
                 author = request.user,
                 content = content
+            )
+            mentioned_users = extract_mentions(content)
+            for user in mentioned_users:
+                if user != request.user:
+                    Mention.objects.create(
+                        mentioned_user=user,
+                        reply=reply
+                    )
+            reply_count = thread.replies.filter(is_deleted=False).count()
+            last_page = (reply_count - 1) // 10 + 1
+
+            return redirect(
+                f"{reverse('forum:thread_detail', kwargs={'pk': thread.pk})}?page={last_page}"
             )
     return redirect("forum:thread_detail", pk = thread.pk)
 
@@ -172,7 +210,7 @@ def report_reply(request, pk):
 def report_list(request):
     profile = getattr(request.user, "profile", None)
     if not profile or not profile.is_moderator:
-        return HttpResponseForbidden()
+        return HttpResponseForbidden("Not Allowed")
 
     reports = Report.objects.filter(status="PENDING")
 
@@ -195,10 +233,30 @@ def toggle_thread_lock(request, pk):
 
 def tag_threads(request, slug):
     tag = get_object_or_404(Tag, slug=slug)
-    threads = tag.threads.select_related("author", "category")
+    threads = tag.threads.select_related("author", "category") # type: ignore
 
     return render(request, "forum/tag_threads.html", {
         "tag": tag,
         "threads": threads,
     })
 
+def search_threads(request):
+    query = request.GET.get("q", "").strip()
+    threads = Thread.objects.filter(is_deleted=False)
+
+    if query:
+        threads = (
+            threads
+            .annotate(
+                similarity=(
+                    TrigramSimilarity("title", query) +
+                    TrigramSimilarity("content", query)
+                )
+            )
+            .filter(similarity__gt=0.2)
+            .order_by("-similarity")
+        )
+    return render(request, "forum/search_results.html", {
+        "query": query,
+        "threads": threads,
+    })
