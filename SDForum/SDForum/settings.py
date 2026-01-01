@@ -17,9 +17,9 @@ SECRET_KEY = 'django-insecure-0vdmw#qklx=jfmbapc7#z@0e^4nvtr#xn5xx&1i%)cxp+lq$-m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["studydeck-forum.onrender.com/"]
+ALLOWED_HOSTS = ["studydeck-forum.onrender.com"]
 CSRF_TRUSTED_ORIGINS = [
-    "https://studydeck-forum.onrender.com/",
+    "https://studydeck-forum.onrender.com",
 ]
 
 # Application definition
