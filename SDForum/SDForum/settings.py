@@ -17,7 +17,7 @@ SECRET_KEY = 'django-insecure-0vdmw#qklx=jfmbapc7#z@0e^4nvtr#xn5xx&1i%)cxp+lq$-m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["sdforum.onrender.com"]
+ALLOWED_HOSTS = ["https://steeldreadeye.pythonanywhere.com/"]
 
 
 # Application definition
