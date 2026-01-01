@@ -1,16 +1,24 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends "base.html" %} {% block content %}
+
 <h2>#{{ tag.name }}</h2>
 
+{% if threads %}
 <ul>
-  {% for thread in threads %}
+    {% for thread in threads %}
     <li>
-      <a href="{% url 'forum:thread_detail' thread.pk %}">
-        {{ thread.title }}
-      </a>
+        <a href="{% url 'forum:thread_detail' thread.pk %}">
+            {{ thread.title }}
+        </a>
+        <br />
+        <small>
+            {{ thread.category.name }} · 👍 {{ thread.likes.count }}
+        </small>
     </li>
-  {% empty %}
-    <li>No threads for this tag.</li>
-  {% endfor %}
+    {% endfor %}
 </ul>
+{% else %}
+<p>No threads with this tag.</p>
+{% endif %} 
+<a href="{% url 'forum:tag_list' %}">← Back to Tags</a>
+<hr>
 {% endblock %}

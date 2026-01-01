@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q, Count
 from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag, Mention
+from .email_utils import send_notification_email
 from .utils import extract_mentions
 
 def category_list(request):
@@ -17,7 +18,7 @@ def category_list(request):
 def thread_list(request, slug):
     category = get_object_or_404(Category, slug = slug)
     sort = request.GET.get("sort", "latest")
-    threads = category.threads.select_related("author") # type: ignore
+    threads = category.threads.filter(is_deleted=False) # type: ignore
 
     if sort == "popular":
         threads = threads.annotate(
@@ -39,6 +40,9 @@ def thread_detail(request, pk):
         Thread.objects.select_related("author", "category"),
         pk = pk
     )
+    if thread.is_deleted:
+        return HttpResponseForbidden("Thread deleted")
+
     replies_qs = (
         thread.replies # type: ignore
         .select_related("author")
@@ -59,6 +63,13 @@ def thread_detail(request, pk):
         "user_thread_like": user_thread_like,
     })
 
+def tag_list(request):
+    tags = Tag.objects.all()
+
+    return render(request, "forum/tag_list.html", {
+        "tags":tags
+    })
+
 @login_required
 def thread_create(request, slug):
     category = get_object_or_404(Category, slug=slug)
@@ -76,7 +87,7 @@ def thread_create(request, slug):
                 content = content
             )
             for name in tag_names.split(","):
-                name = name.strip().lower()
+                name = name.strip().lower().lstrip("#")
                 if name:
                     tag, _ = Tag.objects.get_or_create(
                         name=name,
@@ -90,6 +101,16 @@ def thread_create(request, slug):
                         mentioned_user=user,
                         thread=thread
                     )
+            emails = [
+                user.email
+                for user in mentioned_users
+                if user != request.user and user.email
+            ]
+            send_notification_email(
+                subject="You were mentioned on SDForum",
+                message=f"You were mentioned by {request.user.username}.",
+                recipients=emails,
+            )
             return redirect("forum:thread_list", slug=category.slug)
     return render (request, "forum/thread_create.html", {
         "category":category
@@ -105,11 +126,20 @@ def reply_create(request, thread_id):
         content = request.POST.get("content")
 
         if content:
-            Reply.objects.create(
+            reply = Reply.objects.create(
                 thread = thread,
                 author = request.user,
                 content = content
             )
+            if thread.author != request.user and thread.author.email:
+                send_notification_email(
+                    subject="New reply to your thread",
+                    message=(
+                        f"{request.user.username} replied to your thread:\n\n"
+                        f"{thread.title}"
+                    ),
+                    recipients=[thread.author.email],
+                )
             mentioned_users = extract_mentions(content)
             for user in mentioned_users:
                 if user != request.user:
@@ -117,13 +147,38 @@ def reply_create(request, thread_id):
                         mentioned_user=user,
                         reply=reply
                     )
-            reply_count = thread.replies.filter(is_deleted=False).count()
+            emails = [
+                user.email
+                for user in mentioned_users
+                if user != request.user and user.email
+            ]
+            send_notification_email(
+                subject="You were mentioned on SDForum",
+                message=f"You were mentioned by {request.user.username}.",
+                recipients=emails,
+            )
+            reply_count = thread.replies.filter(is_deleted=False).count() # type: ignore
             last_page = (reply_count - 1) // 10 + 1
 
             return redirect(
                 f"{reverse('forum:thread_detail', kwargs={'pk': thread.pk})}?page={last_page}"
             )
     return redirect("forum:thread_detail", pk = thread.pk)
+
+@login_required
+def thread_delete(request, pk):
+    thread = get_object_or_404(Thread, pk=pk)
+
+    profile = getattr(request.user, "profile", None)
+    is_moderator = profile.is_moderator if profile else False
+
+    if thread.author != request.user and not is_moderator:
+        return HttpResponseForbidden("Not allowed")
+    
+    thread.is_deleted = True
+    thread.save()
+
+    return redirect("forum:thread_list", slug=thread.category.slug)
 
 @login_required
 def reply_delete(request, reply_id):

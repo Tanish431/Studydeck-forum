@@ -1,5 +1,12 @@
 {% extends "base.html" %} {% block content %}
-
+<div style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 20px;">
+    {% if user.is_authenticated %}
+    <span>Hi, {{ user.username }}</span> |
+    <a href="{% url 'account_logout' %}">Logout</a>
+    {% else %}
+    <a href="{% url 'account_login' %}">Login</a>
+    {% endif %}
+</div>
 <form method="get" action="{% url 'forum:search_threads' %}">
     <input type="text" name="q" placeholder="Search threads…" />
     <button type="submit">Search</button>
@@ -9,6 +16,7 @@
 <h2>{{ category.name }}</h2>
 
 <a href="{% url 'forum:thread_create' category.slug %}"> Create Thread </a>
+<br /><br />
 <div>
   <strong>Sort by:</strong>
 
