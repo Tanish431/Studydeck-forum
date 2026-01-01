@@ -17,8 +17,10 @@ SECRET_KEY = 'django-insecure-0vdmw#qklx=jfmbapc7#z@0e^4nvtr#xn5xx&1i%)cxp+lq$-m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["https://studydeck-forum.onrender.com/"]
-
+ALLOWED_HOSTS = ["studydeck-forum.onrender.com/"]
+CSRF_TRUSTED_ORIGINS = [
+    "https://studydeck-forum.onrender.com/",
+]
 
 # Application definition
 
@@ -149,6 +151,5 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / "staticfiles"
-STATICFILES_DIRS = [BASE_DIR / 'static']
