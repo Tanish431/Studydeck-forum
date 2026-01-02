@@ -78,7 +78,7 @@ SOCIALACCOUNT_EMAIL_DOMAIN_AUTHENTICATION = True
 
 ROOT_URLCONF = 'SDForum.urls'
 
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_BACKEND="django.core.mail.backends.console.EmailBackend"
 
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
@@ -87,7 +87,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-DEFAULT_FROM_EMAIL = "SDForum <yourgmail@gmail.com>"
+DEFAULT_FROM_EMAIL = "sdforumnoreply@gmail.com"
 
 MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
