@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2>{{ course.code }}</h2>
+
+{% if threads %}
+<ul>
+    {% for thread in threads %}
+    <li>
+        <a href="{% url 'forum:thread_detail' thread.pk %}">
+            {{ thread.title }}
+        </a>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No threads for this course yet.</p>
+{% endif %}
+<a href="{% url 'forum:course_list' %}">← Back to Courses</a>
+{% endblock %}

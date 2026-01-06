@@ -361,6 +361,21 @@ def tag_threads(request, slug):
         "threads": threads,
     })
 
+#List threads by course
+def course_threads(request, code):
+    course = get_object_or_404(Course, code = code)
+    threads = course.threads.filter(is_deleted=False) # type: ignore
+
+    return render(request, "form/course_threads.html", {
+        "course":course,
+        "threads":threads,
+    })
+
+def course_list(request):
+    courses = Course.objects.all().order_by("code")
+    return render(request, "forum/course_list.html", {
+        "courses": courses
+    })
 #Search system
 def search_threads(request):
     query = request.GET.get("q", "").strip()

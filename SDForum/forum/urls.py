@@ -20,7 +20,9 @@ urlpatterns = [
     path("tags/", views.tag_list, name="tag_list"),
     path("tags/<slug:slug>/", views.tag_threads, name="tag_threads"),
     path("search/", views.search_threads, name="search_threads"),
-    
+    path("courses/", views.course_list, name="course_list"),
+    path("courses/<str:code>/", views.course_threads, name="course_threads"),
+
     path("<slug:slug>/", views.thread_list, name="thread_list"),
     path("<slug:slug>/new/", views.thread_create, name="thread_create"),
 ]
