@@ -9,17 +9,20 @@ from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag,
 from .email_utils import send_notification_email
 from .utils import extract_mentions
 
+#List all the categories
 def category_list(request):
     categories = Category.objects.all()
     return render(request, "forum/category_list.html", {
         "categories": categories
     })
 
+#List threads in a category
 def thread_list(request, slug):
     category = get_object_or_404(Category, slug = slug)
     sort = request.GET.get("sort", "latest")
     threads = category.threads.filter(is_deleted=False) # type: ignore
 
+    #Sorting
     if sort == "popular":
         threads = threads.annotate(
             like_count = Count("likes")
@@ -35,6 +38,7 @@ def thread_list(request, slug):
         "sort":sort,
     })
 
+#View thread details
 def thread_detail(request, pk):
     thread = get_object_or_404(
         Thread.objects.select_related("author", "category"),
@@ -49,11 +53,12 @@ def thread_detail(request, pk):
         .filter(is_deleted=False)
     )
 
-    paginator = Paginator(replies_qs, 10)  # 10 replies per page
+    paginator = Paginator(replies_qs, 10)  
     page_number = request.GET.get("page")
     page_obj = paginator.get_page(page_number)
 
-    user_thread_like = False
+    #Check if user liked
+    user_thread_like = False 
     if request.user.is_authenticated:
         user_thread_like = thread.likes.filter(user=request.user).exists() # type: ignore
 
@@ -63,6 +68,7 @@ def thread_detail(request, pk):
         "user_thread_like": user_thread_like,
     })
 
+#List all tags
 def tag_list(request):
     tags = Tag.objects.all()
 
@@ -70,6 +76,7 @@ def tag_list(request):
         "tags":tags
     })
 
+#Create a new thread
 @login_required
 def thread_create(request, slug):
     category = get_object_or_404(Category, slug=slug)
@@ -86,14 +93,16 @@ def thread_create(request, slug):
                 title = title,
                 content = content
             )
+            #Tag creation
             for name in tag_names.split(","):
-                name = name.strip().lower().lstrip("#")
+                name = name.strip().lower().lstrip()
                 if name:
                     tag, _ = Tag.objects.get_or_create(
                         name=name,
                         defaults={"slug": name.replace(" ", "-")}
                     )
                     thread.tags.add(tag)
+            #Handling mention
             mentioned_users = extract_mentions(content)
             for user in mentioned_users:
                 if user != request.user:
@@ -116,6 +125,7 @@ def thread_create(request, slug):
         "category":category
     })
 
+#Create a reply 
 @login_required
 def reply_create(request, thread_id):
     thread = get_object_or_404(Thread, pk=thread_id)
@@ -131,6 +141,7 @@ def reply_create(request, thread_id):
                 author = request.user,
                 content = content
             )
+            #Email notification to thread author
             if thread.author != request.user and thread.author.email:
                 send_notification_email(
                     subject="New reply to your thread",
@@ -140,6 +151,7 @@ def reply_create(request, thread_id):
                     ),
                     recipients=[thread.author.email],
                 )
+            #Handling mention 
             mentioned_users = extract_mentions(content)
             for user in mentioned_users:
                 if user != request.user:
@@ -157,6 +169,7 @@ def reply_create(request, thread_id):
                 message=f"You were mentioned by {request.user.username}.",
                 recipients=emails,
             )
+            #Redirect to the last page of replies
             reply_count = thread.replies.filter(is_deleted=False).count() # type: ignore
             last_page = (reply_count - 1) // 10 + 1
 
@@ -165,10 +178,12 @@ def reply_create(request, thread_id):
             )
     return redirect("forum:thread_detail", pk = thread.pk)
 
+#Delete a thread
 @login_required
 def thread_delete(request, pk):
     thread = get_object_or_404(Thread, pk=pk)
 
+    #Check permissions
     profile = getattr(request.user, "profile", None)
     is_moderator = profile.is_moderator if profile else False
 
@@ -180,10 +195,12 @@ def thread_delete(request, pk):
 
     return redirect("forum:thread_list", slug=thread.category.slug)
 
+#Delete a reply
 @login_required
 def reply_delete(request, reply_id):
     reply = get_object_or_404(Reply, pk=reply_id)
 
+    #Check permissions
     profile = getattr(request.user, "profile", None)
     is_moderator = profile.is_moderator if profile else False
 
@@ -195,6 +212,7 @@ def reply_delete(request, reply_id):
 
     return redirect("forum:thread_detail", pk=reply.thread.pk)
 
+#Like system for a thread
 @login_required
 def toggle_thread_like(request, thread_id):
     thread = get_object_or_404(Thread, pk=thread_id)
@@ -204,6 +222,7 @@ def toggle_thread_like(request, thread_id):
         user=request.user
     )
 
+    #Toggling like
     if not created:
         like.delete()
 
@@ -223,6 +242,7 @@ def toggle_reply_like(request, reply_id):
 
     return redirect("forum:thread_detail", pk=reply.thread.pk)
 
+#Reporting system
 @login_required
 def report_thread(request, pk):
     thread = get_object_or_404(Thread, pk=pk)
@@ -242,6 +262,7 @@ def report_thread(request, pk):
         "type": "thread",
     })
 
+#Reporting a reply
 @login_required
 def report_reply(request, pk):
     reply = get_object_or_404(Reply, pk=pk)
@@ -261,8 +282,10 @@ def report_reply(request, pk):
         "type": "reply",
     })
 
+#List all reports (for moderators)
 @login_required
 def report_list(request):
+    #Check permission
     profile = getattr(request.user, "profile", None)
     if not profile or not profile.is_moderator:
         return HttpResponseForbidden("Not Allowed")
@@ -273,6 +296,7 @@ def report_list(request):
         "reports": reports
     })
 
+#Locking system
 @login_required
 def toggle_thread_lock(request, pk):
     thread = get_object_or_404(Thread, pk=pk)
@@ -286,6 +310,7 @@ def toggle_thread_lock(request, pk):
 
     return redirect("forum:thread_detail", pk=thread.pk)
 
+#List threads by tag
 def tag_threads(request, slug):
     tag = get_object_or_404(Tag, slug=slug)
     threads = tag.threads.select_related("author", "category") # type: ignore
@@ -295,14 +320,14 @@ def tag_threads(request, slug):
         "threads": threads,
     })
 
+#Search system
 def search_threads(request):
     query = request.GET.get("q", "").strip()
     threads = Thread.objects.filter(is_deleted=False)
 
     if query:
         threads = (
-            threads
-            .annotate(
+            threads.annotate(
                 similarity=(
                     TrigramSimilarity("title", query) +
                     TrigramSimilarity("content", query)
