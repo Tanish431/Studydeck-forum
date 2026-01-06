@@ -1,15 +1,13 @@
 {% extends "base.html" %} {% block content %} {% load markdown_extras %}
 <h2>{{ thread.title }}</h2>
 {% if thread.course %}
-  <p>
+<p style="color: blue;">
     Course:
     <a href="{% url 'forum:course_threads' thread.course.code %}">
-      {{ thread.course.code }}
+        {{ thread.course.code }}
     </a>
-  </p>
-{% endif %}
-
-{% if thread.is_locked %}
+</p>
+{% endif %} {% if thread.is_locked %}
 <span style="color: red">Locked</span>
 {% endif %}
 
@@ -20,8 +18,8 @@
 <p>
     <b>Tags:</b>
     {% for tag in thread.tags.all %}
-    <span>{{ tag.name }}</span>{% if not forloop.last %}, {% endif %}
-    {% empty %}
+    <span>{{ tag.name }}</span>{% if not forloop.last %}, {% endif %} {% empty
+    %}
     <span>No tags</span>
     {% endfor %}
 </p>
@@ -43,9 +41,8 @@
         {% if thread.is_locked %}Unlock{% else %}Lock{% endif %} Thread
     </button>
 </form>
-{% endif %} 
-{% if user.is_authenticated %} 
-{% if thread.author == user or user.profile.is_moderator %}
+{% endif %} {% if user.is_authenticated %} {% if thread.author == user or
+user.profile.is_moderator %}
 <form method="post" action="{% url 'forum:thread_delete' thread.pk %}">
     {% csrf_token %}
     <button type="submit">Delete Thread</button>
