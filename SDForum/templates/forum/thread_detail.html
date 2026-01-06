@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %} {% load markdown_extras %}
 <h2>{{ thread.title }}</h2>
 {% if thread.course %}
-<span> show </span>
+<span style="color: blue"> Course: {{ thread.course.code }}</span>
 {% endif %} {% if thread.is_locked %}
 <span style="color: red">Locked</span>
 {% endif %}
