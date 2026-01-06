@@ -35,7 +35,7 @@
 </div>
 {% if user.is_authenticated and user.profile.is_moderator %}
 <div style="margin-top: 10px">
-    <a href="{% url 'forum:report_list' %}">🚨 View Reports</a>
+    <a href="{% url 'forum:report_list' %}">View Reports</a>
 </div>
 {% endif %}
 

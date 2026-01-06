@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Access Denied</h2>
+<p>
+  This forum is restricted to
+  <strong>@pilani.bits-pilani.ac.in</strong>
+</p>
+
+<a href="{% url 'account_login' %}">login with another account</a>
+{% endblock %}

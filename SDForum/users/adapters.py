@@ -1,9 +1,16 @@
 from allauth.socialaccount.adapter import DefaultSocialAccountAdapter
-from django.core.exceptions import PermissionDenied
+from allauth.exceptions import ImmediateHttpResponse
+from django.shortcuts import render
 
 class CustomSocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         email = sociallogin.user.email
 
         if not email or not email.endswith("@pilani.bits-pilani.ac.in"):
-            raise PermissionDenied("Access restricted to BITS Pilani email accounts.")
+            raise ImmediateHttpResponse(
+                render(
+                    request,
+                    "account/access_denied.html",
+                    status=403,
+                )
+            )

@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from courses.models import Course
 
 User = settings.AUTH_USER_MODEL
 
@@ -42,6 +43,13 @@ class Thread(models.Model):
         Tag,
         related_name="threads",
         blank=True
+    )
+    course = models.ForeignKey(
+        Course,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="threads"
     )
     title = models.CharField(max_length=255)
     content = models.TextField()

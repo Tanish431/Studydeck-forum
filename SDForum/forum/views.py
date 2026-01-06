@@ -8,6 +8,7 @@ from django.db.models import Q, Count
 from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag, Mention
 from .email_utils import send_notification_email
 from .utils import extract_mentions
+from courses.models import Course
 
 #List all the categories
 def category_list(request):
@@ -80,18 +81,25 @@ def tag_list(request):
 @login_required
 def thread_create(request, slug):
     category = get_object_or_404(Category, slug=slug)
+    courses = Course.objects.all().order_by("code")
 
     if request.method == "POST":
         title = request.POST.get("title")
         content = request.POST.get("content")
         tag_names = request.POST.get("tags", "")
+        course_id = request.POST.get("course")
 
+        course = None
+        if course_id:
+            course = Course.objects.filter(id=course_id).first()
+            
         if title and content:
             thread = Thread.objects.create(
                 category = category,
                 author = request.user,
                 title = title,
-                content = content
+                content = content,
+                course=course
             )
             #Tag creation
             for name in tag_names.split(","):
@@ -122,7 +130,8 @@ def thread_create(request, slug):
             )
             return redirect("forum:thread_list", slug=category.slug)
     return render (request, "forum/thread_create.html", {
-        "category":category
+        "category":category,
+        "courses":courses
     })
 
 #Create a reply 

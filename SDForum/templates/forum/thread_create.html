@@ -4,6 +4,16 @@
 <form method="post">
     {% csrf_token %}
     <input type="text" name="title" placeholder="Title" required /><br /><br />
+    <label>Course (optional)</label>
+    <select name="course">
+        <option value="">None</option>
+        {% for course in courses %}
+        <option value="{{ course.id }}">
+            {{ course.code }} - {{ course.name }}
+        </option>
+        {% endfor %}
+    </select>
+    <br /><br />
     <textarea
         name="content"
         rows="6"
