@@ -1,43 +1,52 @@
-{% extends "base.html" %}
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 <h2>Pending Reports</h2>
 
 {% if reports %}
-  <ul>
+<ul>
     {% for report in reports %}
-      <li>
-        <strong>Reported by:</strong> {{ report.reporter }} <br>
+    <li>
+        <strong>Reported by:</strong> {{ report.reporter }} <br />
 
         {% if report.thread %}
-          <strong>Thread:</strong>
-          <a href="{% url 'forum:thread_detail' report.thread.pk %}">
+        <strong>Thread:</strong>
+        <a href="{% url 'forum:thread_detail' report.thread.pk %}">
             {{ report.thread.title }}
-          </a>
-        {% endif %}
-
-        {% if report.reply %}
-          <strong>Reply in:</strong>
-          <a href="{% url 'forum:thread_detail' report.reply.thread.pk %}">
+        </a>
+        {% endif %} {% if report.reply %}
+        <strong>Reply in:</strong>
+        <a href="{% url 'forum:thread_detail' report.reply.thread.pk %}">
             {{ report.reply.thread.title }}
-          </a>
+        </a>
         {% endif %}
 
         <p><strong>Reason:</strong> {{ report.reason }}</p>
 
-        <form method="post" action="{% url 'admin:forum_report_change' report.pk %}">
-          {% csrf_token %}
-          <button type="submit">
-            Resolve in Admin
-          </button>
+        {% if report.status == "PENDING" %}
+        <form
+            method="post"
+            action="{% url 'forum:report_delete' report.pk %}"
+            style="display: inline"
+        >
+            {% csrf_token %}
+            <button type="submit">Delete</button>
         </form>
 
-        <hr>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No pending reports 🎉</p>
-{% endif %}
+        <form
+            method="post"
+            action="{% url 'forum:report_safe' report.pk %}"
+            style="display: inline"
+        >
+            {% csrf_token %}
+            <button type="submit">Mark Safe</button>
+        </form>
+        {% else %}
+        <em>Resolved</em>
+        {% endif %}
 
-{% endblock %}
+        <hr />
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No pending reports 🎉</p>
+{% endif %} {% endblock %}

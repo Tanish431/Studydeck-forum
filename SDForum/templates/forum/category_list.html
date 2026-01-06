@@ -1,5 +1,5 @@
 {% extends "base.html" %} {% block content %}
-<div style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 20px;">
+<div style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 20px">
     {% if user.is_authenticated %}
     <span>Hi, {{ user.username }}</span> |
     <a href="{% url 'account_logout' %}">Logout</a>
@@ -33,6 +33,11 @@
 <div>
     <a href="{% url 'forum:tag_list' %}"> Browse Tags </a>
 </div>
+{% if user.is_authenticated and user.profile.is_moderator %}
+<div style="margin-top: 10px">
+    <a href="{% url 'forum:report_list' %}">🚨 View Reports</a>
+</div>
+{% endif %}
 
 <hr />
 

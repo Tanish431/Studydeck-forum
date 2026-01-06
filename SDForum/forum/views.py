@@ -184,7 +184,7 @@ def thread_delete(request, pk):
     thread = get_object_or_404(Thread, pk=pk)
 
     #Check permissions
-    profile = getattr(request.user, "profile", None)
+    profile = getattr(request.user, "profile")
     is_moderator = profile.is_moderator if profile else False
 
     if thread.author != request.user and not is_moderator:
@@ -201,7 +201,7 @@ def reply_delete(request, reply_id):
     reply = get_object_or_404(Reply, pk=reply_id)
 
     #Check permissions
-    profile = getattr(request.user, "profile", None)
+    profile = getattr(request.user, "profile")
     is_moderator = profile.is_moderator if profile else False
 
     if reply.author != request.user and not is_moderator:
@@ -286,7 +286,7 @@ def report_reply(request, pk):
 @login_required
 def report_list(request):
     #Check permission
-    profile = getattr(request.user, "profile", None)
+    profile = getattr(request.user, "profile")
     if not profile or not profile.is_moderator:
         return HttpResponseForbidden("Not Allowed")
 
@@ -296,12 +296,44 @@ def report_list(request):
         "reports": reports
     })
 
+@login_required
+def resolve_report_delete(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+
+    profile=getattr(request.user, "profile")
+    if not profile or not profile.is_moderator:
+        return HttpResponseForbidden()
+    
+    if report.thread:
+        report.thread.is_deleted = True
+        report.thread.save()
+    if report.reply:
+        report.reply.is_deleted = True
+        report.reply.save()
+    
+    report.status="RESOLVED"
+    report.save()
+
+    return redirect("forum:report_list")
+
+@login_required
+def resolve_report_safe(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+
+    profile=getattr(request.user, "profile")
+    if not profile or not profile.is_moderator:
+        return HttpResponseForbidden()
+    
+    report.status="RESOLVED"
+    report.save()
+
+    return redirect("forum:report_list")
 #Locking system
 @login_required
 def toggle_thread_lock(request, pk):
     thread = get_object_or_404(Thread, pk=pk)
 
-    profile = getattr(request.user, "profile", None)
+    profile = getattr(request.user, "profile")
     if not profile or not profile.is_moderator:
         return HttpResponseForbidden("Not allowed")
 
