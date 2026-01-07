@@ -363,6 +363,7 @@ def tag_threads(request, slug):
 
 #List threads by course
 def course_threads(request, slug):
+    print(f"{slug}")
     return HttpResponse("COURSE VIEW HIT")
 
 
