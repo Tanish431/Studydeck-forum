@@ -1,7 +1,7 @@
 {% extends "base.html" %} {% block content %}
 
-<h2>{{ course.code }}</h2>
-
+<h2>Threads for {{ course.code }}</h2>
+{% comment %} 
 {% if threads %}
 <ul>
     {% for thread in threads %}
@@ -14,6 +14,7 @@
 </ul>
 {% else %}
 <p>No threads for this course yet.</p>
-{% endif %}
+{% endif %} {% endcomment %}
 <a href="{% url 'forum:course_list' %}">← Back to Courses</a>
+<hr>
 {% endblock %}
