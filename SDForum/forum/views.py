@@ -363,7 +363,9 @@ def tag_threads(request, slug):
 
 #List threads by course
 def course_threads(request, slug):
-    print(f"{slug}")
+    course = get_object_or_404(Course, slug=slug)
+    threads = course.threads.filter(is_deleted=False)
+    
     return HttpResponse("COURSE VIEW HIT")
 
 
