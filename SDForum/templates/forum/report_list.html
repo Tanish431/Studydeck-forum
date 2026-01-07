@@ -49,4 +49,7 @@
 </ul>
 {% else %}
 <p>No pending reports</p>
-{% endif %} {% endblock %}
+{% endif %} 
+<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
+<hr>
+{% endblock %}

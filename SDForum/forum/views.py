@@ -1,10 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponseForbidden, HttpResponse
+from django.http import HttpResponseForbidden
 from django.urls import reverse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q, Count
+from django.db.utils import ProgrammingError
 from .models import Category, Thread, Reply, ThreadLike, ReplyLike, Report, Tag, Mention
 from .email_utils import send_notification_email
 from .utils import extract_mentions
@@ -368,7 +369,6 @@ def course_threads(request, slug):
 
     return render(request, "forum/course_threads.html", {"course": course, "threads": threads})
 
-
 def course_list(request):
     courses = Course.objects.all().order_by("code")
     return render(request, "forum/course_list.html", {
@@ -380,16 +380,23 @@ def search_threads(request):
     threads = Thread.objects.filter(is_deleted=False)
 
     if query:
-        threads = (
-            threads.annotate(
-                similarity=(
-                    TrigramSimilarity("title", query) +
-                    TrigramSimilarity("content", query)
+        try:
+            threads = (
+                threads.annotate(
+                    similarity=(
+                        TrigramSimilarity("title", query) +
+                        TrigramSimilarity("content", query)
+                    )
                 )
+                .filter(similarity__gt=0.2)
+                .order_by("-similarity")
             )
-            .filter(similarity__gt=0.2)
-            .order_by("-similarity")
-        )
+        except ProgrammingError:
+            threads = threads.filter(
+                Q(title__icontains=query) |
+                Q(content__icontains=query)
+            )
+
     return render(request, "forum/search_results.html", {
         "query": query,
         "threads": threads,
