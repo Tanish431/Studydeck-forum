@@ -4,7 +4,7 @@ from django.utils.text import slugify
 class Course(models.Model):
     code = models.CharField(max_length=10, unique=True)
     title = models.CharField(max_length=30)
-    slug = models.SlugField(unique=True)
+    slug = models.SlugField(unique=False, null=True, blank=True)
     department = models.CharField(max_length=100)
 
     def save(self, *args, **kwargs):
