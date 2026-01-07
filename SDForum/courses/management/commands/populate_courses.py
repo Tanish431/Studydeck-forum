@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 from courses.models import Course
+from django.utils.text import slugify
 
 class Command(BaseCommand):
     def handle(self, *args, **kwargs):
@@ -12,7 +13,7 @@ class Command(BaseCommand):
         for code, title, dept in courses:
             obj, created = Course.objects.get_or_create(
                 code=code,
-                defaults={"title": title, "department": dept}
+                defaults={"title": title, "department": dept, "slug": slugify(code)}
             )
             if created:
                 self.stdout.write(f"Written Successfully")
