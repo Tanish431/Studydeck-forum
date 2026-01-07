@@ -1,16 +1,9 @@
 from django.db import models
-from django.utils.text import slugify
 
 class Course(models.Model):
     code = models.CharField(max_length=10, unique=True)
     title = models.CharField(max_length=30)
-    slug = models.SlugField(unique=False, null=True, blank=True)
     department = models.CharField(max_length=100)
-
-    def save(self, *args, **kwargs):
-        if not self.slug:
-            self.slug = slugify(self.code)
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.code} - {self.title}"
