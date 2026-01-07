@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
-<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
 
 <h2>Courses</h2>
 
 <ul>
   {% for course in courses %}
-    <li>
-      <a href="{% url 'forum:course_threads' course.code %}">
-        {{ course.code }}
-      </a>
-    </li>
+  <li>
+    <a href="{% url 'forum:course_threads' course.code %}">
+      {{ course.code }}
+    </a>
+  </li>
   {% endfor %}
 </ul>
+<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
+<hr>
 {% endblock %}
