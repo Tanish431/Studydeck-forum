@@ -1,9 +1,7 @@
-{% extends "base.html" %} 
-
-{% block content %}
+{% extends "base.html" %} {% block content %}
 
 <h2>Threads</h2>
-{% comment %} 
+
 {% if threads %}
 <ul>
     {% for thread in threads %}
@@ -11,12 +9,16 @@
         <a href="{% url 'forum:thread_detail' thread.pk %}">
             {{ thread.title }}
         </a>
+        <br />
+        <small>
+            {{ thread.category.name }} · 👍 {{ thread.likes.count }}
+        </small>
     </li>
     {% endfor %}
 </ul>
 {% else %}
-<p>No threads for this course yet.</p>
-{% endif %} {% endcomment %}
+<p>No threads with this tag.</p>
+{% endif %} 
 <a href="{% url 'forum:course_list' %}">← Back to Courses</a>
 <hr>
 {% endblock %}

@@ -364,7 +364,7 @@ def tag_threads(request, slug):
 #List threads by course
 def course_threads(request, slug):
     course = get_object_or_404(Course, slug = slug)
-    threads = course.threads.filter(is_deleted=False) # type: ignore
+    threads = tag.threads.select_related("author", "category")# type: ignore
 
     return render(request, "form/course_threads.html", {
         "course":course,
