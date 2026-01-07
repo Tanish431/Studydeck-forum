@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.urls import reverse
 from django.contrib.postgres.search import TrigramSimilarity
 from django.db.models import Q, Count
@@ -363,13 +363,8 @@ def tag_threads(request, slug):
 
 #List threads by course
 def course_threads(request, slug):
-    course = get_object_or_404(Course, slug = slug)
-    threads = tag.threads.select_related("author", "category")# type: ignore
+    return HttpResponse("COURSE VIEW HIT")
 
-    return render(request, "form/course_threads.html", {
-        "course":course,
-        "threads":threads,
-    })
 
 def course_list(request):
     courses = Course.objects.all().order_by("code")
