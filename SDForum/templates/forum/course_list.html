@@ -1,18 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="mb-5 pb-4 border-bottom">
+        <h2 class="mb-0"><i class="bi bi-book"></i> Courses</h2>
+    </div>
 
-<h2>Courses</h2>
+    <!-- Courses Grid -->
+    {% if courses %}
+    <div class="row g-3 mb-5">
+        {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{% url 'forum:course_threads' course.slug %}" class="text-decoration-none">
+                <div class="card h-100 border-0 shadow-sm" style="cursor: pointer; transition: all 0.3s ease;">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">
+                            <i class="bi bi-book-fill text-primary"></i> {{ course.code }}
+                        </h5>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle"></i> No courses available.
+    </div>
+    {% endif %}
 
-<ul>
-  {% for course in courses %}
-  <li>
-    <a href="{% url 'forum:course_threads' course.slug %}">
-      {{ course.code }}
-    </a>
-  </li>
-  {% endfor %}
-</ul>
-<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
-<hr>
+    <!-- Back Link -->
+    <div>
+        <a href="{% url 'forum:category_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Forum
+        </a>
+    </div>
+</div>
 {% endblock %}

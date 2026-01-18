@@ -1,114 +1,235 @@
-{% extends "base.html" %} {% block content %} {% load markdown_extras %}
-<h2>{{ thread.title }}</h2>
-{% if thread.course %}
-<span style="color: blue"> Course: {{ thread.course.code }}</span>
-{% endif %} {% if thread.is_locked %}
-<span style="color: red">Locked</span>
-{% endif %}
+{% extends "base.html" %}
+{% load markdown_extras %}
 
-<p>
-    <em>{{ thread.author }}</em>
-    at {{ thread.created_at }}
-</p>
-<p>
-    <b>Tags:</b>
-    {% for tag in thread.tags.all %}
-    <span>{{ tag.name }}</span>{% if not forloop.last %}, {% endif %}
-    {% empty %}
-    <span>No tags</span>
-    {% endfor %}
-</p>
+{% block content %}
+<div class="container mt-5">
+    <!-- Back Button -->
+    <a href="{% url 'forum:thread_list' thread.category.slug %}" class="btn btn-outline-secondary mb-4">
+        <i class="bi bi-arrow-left"></i> Back to {{ thread.category.name }}
+    </a>
 
-<div><b>Post: </b>{{ thread.content|markdownify|safe }}</div>
+    <!-- Thread Header -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <div>
+                <h1 class="mb-3">{{ thread.title }}</h1>
+                <div class="d-flex gap-2 align-items-center flex-wrap">
+                    <small class="text-muted">
+                        <i class="bi bi-person"></i> <strong>{{ thread.author }}</strong>
+                    </small>
+                    <small class="text-muted">
+                        <i class="bi bi-calendar"></i> {{ thread.created_at|date:"M d, Y H:i" }}
+                    </small>
+                    {% if thread.course %}
+                    <span class="badge bg-info">
+                        <i class="bi bi-book"></i> {{ thread.course.code }}
+                    </span>
+                    {% endif %}
+                    {% if thread.is_locked %}
+                    <span class="badge bg-danger">
+                        <i class="bi bi-lock"></i> Locked
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
 
-<form method="post" action="{% url 'forum:thread_like' thread.id %}">
-    {% csrf_token %}
-    <button type="submit">
-        👍 {{ thread.likes.count }} {% if user_thread_like %}(Liked){% endif %}
-    </button>
-</form>
-{% if user.is_authenticated %}
-<a href="{% url 'forum:report_thread' thread.pk %}">Report thread</a>
-{% endif %} {% if user.is_authenticated and user.profile.is_moderator %}
-<form method="post" action="{% url 'forum:thread_lock' thread.pk %}">
-    {% csrf_token %}
-    <button type="submit">
-        {% if thread.is_locked %}Unlock{% else %}Lock{% endif %} Thread
-    </button>
-</form>
-{% endif %} 
-{% if user.is_authenticated %} 
-{% if thread.author == user or user.profile.is_moderator %}
-<form method="post" action="{% url 'forum:thread_delete' thread.pk %}">
-    {% csrf_token %}
-    <button type="submit">Delete Thread</button>
-</form>
-{% endif %} {% endif %}
+        <!-- Tags -->
+        {% if thread.tags.all %}
+        <div class="mb-3">
+            {% for tag in thread.tags.all %}
+            <span class="badge bg-secondary">{{ tag.name }}</span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
 
-<hr />
+    <!-- Thread Content -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body p-4">
+            <div class="thread-content">
+                {{ thread.content|markdownify|safe }}
+            </div>
+        </div>
+    </div>
 
-<h3>Replies</h3>
+    <!-- Thread Actions -->
+    <div class="d-flex gap-2 flex-wrap mb-5">
+        <form method="post" action="{% url 'forum:thread_like' thread.id %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn {% if user_thread_like %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-hand-thumbs-up"></i> {{ thread.likes.count }}
+            </button>
+        </form>
 
-<ul>
-    {% for reply in page_obj %}
-    <li>
-        {% if reply.is_deleted %}
-        <em>[This reply was deleted]</em>
-        {% else %}
-        <strong>{{ reply.author }}</strong> · {{ reply.created_at }}<br />
-        <div>{{ reply.content|markdownify|safe }}</div>
+        {% if user.is_authenticated and thread.author != user %}
+        <a href="{% url 'forum:report_thread' thread.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-exclamation-triangle"></i> Report
+        </a>
+        {% endif %}
+
+        {% if user.is_authenticated and user.profile.is_moderator %}
+        <form method="post" action="{% url 'forum:thread_lock' thread.pk %}" class="d-inline">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-outline-warning">
+                <i class="bi bi-{% if thread.is_locked %}unlock{% else %}lock{% endif %}"></i>
+                {% if thread.is_locked %}Unlock{% else %}Lock{% endif %}
+            </button>
+        </form>
+        {% endif %}
+
         {% if user.is_authenticated %}
-        <div class="reply-actions">
-            {% if reply.author == user or user.profile.is_moderator %}
-            <form
-                method="post"
-                action="{% url 'forum:reply_delete' reply.id %}"
-                style="display: inline"
-            >
+            {% if thread.author == user or user.profile.is_moderator %}
+            <form method="post" action="{% url 'forum:thread_delete' thread.pk %}" class="d-inline">
                 {% csrf_token %}
-                <button type="submit">Delete</button>
+                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete this thread?');">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
             </form>
             {% endif %}
+        {% endif %}
+    </div>
 
-            <a href="{% url 'forum:report_reply' reply.pk %}">Report</a>
+    <!-- Replies Section -->
+    <div class="mb-5">
+        <h3 class="mb-4"><i class="bi bi-chat-dots"></i> Replies <span class="badge bg-secondary">{{ page_obj|length }}</span></h3>
 
-            <form
-                method="post"
-                action="{% url 'forum:reply_like' reply.id %}"
-                style="display: inline"
-            >
-                {% csrf_token %}
-                <button type="submit">👍 {{ reply.likes.count }}</button>
-            </form>
+        {% if page_obj %}
+        <div class="list-group list-group-flush mb-4">
+            {% for reply in page_obj %}
+            <div class="list-group-item px-3 py-3 border-bottom">
+                {% if reply.is_deleted %}
+                <div class="alert alert-warning py-2 mb-0">
+                    <i class="bi bi-info-circle"></i> <em>This reply was deleted</em>
+                </div>
+                {% else %}
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div>
+                        <strong>{{ reply.author }}</strong>
+                        <small class="text-muted ms-2">
+                            <i class="bi bi-calendar"></i> {{ reply.created_at|date:"M d, Y H:i" }}
+                        </small>
+                    </div>
+                </div>
+                <div class="reply-content mb-3">
+                    {{ reply.content|markdownify|safe }}
+                </div>
+                {% if user.is_authenticated %}
+                <div class="d-flex gap-2 flex-wrap">
+                    <form method="post" action="{% url 'forum:reply_like' reply.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-hand-thumbs-up"></i> {{ reply.likes.count }}
+                        </button>
+                    </form>
+                    {% if reply.author != user %}
+                        <a href="{% url 'forum:report_reply' reply.pk %}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Report
+                        </a>
+                    {% endif %}
+                    {% if reply.author == user or user.profile.is_moderator %}
+                    <form method="post" action="{% url 'forum:reply_delete' reply.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this reply?');">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+            {% endfor %}
         </div>
-        {% endif %} {% endif %}
-    </li>
-    {% empty %}
-    <li>No replies yet.</li>
-    {% endfor %}
-</ul>
-{% if page_obj.has_other_pages %}
-<div>
-    {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}">Prev</a>
-    {% endif %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}">Next</a>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Reply pagination" class="mb-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">First</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Previous</span>
+                </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">Next</span>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Last</span>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> No replies yet. Be the first to reply!
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Reply Form -->
+    {% if user.is_authenticated and not thread.is_locked %}
+    <div class="mb-5">
+        <h3 class="mb-4"><i class="bi bi-pencil-square"></i> Post a Reply</h3>
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" action="{% url 'forum:reply_create' thread.id %}">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <textarea
+                            class="form-control"
+                            name="content"
+                            rows="5"
+                            placeholder="Share your thoughts..."
+                            required
+                        ></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Post Reply
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    {% if thread.is_locked %}
+    <div class="alert alert-warning">
+        <i class="bi bi-lock"></i> This thread is locked. You cannot post replies.
+    </div>
+    {% endif %}
     {% endif %}
 </div>
-{% endif %} {% if user.is_authenticated and not thread.is_locked %}
-<hr />
-<h3>Post a Reply</h3>
-<form method="post" action="{% url 'forum:reply_create' thread.id %}">
-    {% csrf_token %}
-    <textarea name="content" rows="4" required></textarea><br />
-    <button type="submit">Reply</button>
-</form>
-{% endif %}
 
-<p>
-    <a href="{% url 'forum:thread_list' thread.category.slug %}">
-        ← Back to {{ thread.category.name }}
-    </a>
-</p>
+<style>
+    .thread-content, .reply-content {
+        line-height: 1.6;
+    }
+    .thread-content p, .reply-content p {
+        margin-bottom: 1rem;
+    }
+</style>
 {% endblock %}

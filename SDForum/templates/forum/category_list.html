@@ -1,48 +1,82 @@
-{% extends "base.html" %} {% block content %}
-<div style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 20px">
-    {% if user.is_authenticated %}
-    <span>Hi, {{ user.username }}</span> |
-    <a href="{% url 'account_logout' %}">Logout</a>
-    {% else %}
-    <a href="{% url 'account_login' %}">Login</a>
-    {% endif %}
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Header with User Info -->
+    <div class="d-flex justify-content-between align-items-center mb-4 pb-4 border-bottom">
+        <div>
+            <h2 class="mb-0"><i class="bi bi-chat-dots"></i> Forum Categories</h2>
+        </div>
+        <div>
+            {% if user.is_authenticated %}
+            <span class="text-muted me-3">Hi, <strong>{{ user.username }}</strong></span>
+            <a href="{% url 'account_logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+            {% else %}
+            <a href="{% url 'account_login' %}" class="btn btn-primary btn-sm">Login</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-5 border-bottom pb-4">
+        <form method="get" action="{% url 'forum:search_threads' %}" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control form-control-lg" placeholder="Search threads…" />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <!-- Categories Grid -->
+    <div class="mb-5">
+        <h2 class="mb-4">Categories</h2>
+        {% if categories %}
+        <div class="row g-3">
+            {% for category in categories %}
+            <div class="col-md-6 col-lg-4">
+                <a href="{% url 'forum:thread_list' category.slug %}" class="text-decoration-none">
+                    <div class="card h-100 border-0 shadow-sm hover-shadow transition" style="cursor: pointer;">
+                        <div class="card-body">
+                            <h5 class="card-title mb-2"><i class="bi bi-folder-fill text-primary"></i> {{ category.name }}</h5>
+                            <p class="card-text text-muted small">{{ category.description }}</p>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> No categories yet.
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Navigation Links -->
+    <div class="mb-5">
+        <h2 class="mb-3">Explore</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            <a href="{% url 'forum:tag_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-tags"></i> Browse Tags
+            </a>
+            <a href="{% url 'forum:course_list' %}" class="btn btn-outline-primary">
+                <i class="bi bi-book"></i> Browse by Courses
+            </a>
+            {% if user.is_authenticated and user.profile.is_moderator %}
+            <a href="{% url 'forum:report_list' %}" class="btn btn-outline-danger">
+                <i class="bi bi-exclamation-triangle"></i> View Reports
+            </a>
+            {% endif %}
+        </div>
+    </div>
 </div>
-<form method="get" action="{% url 'forum:search_threads' %}">
-    <input type="text" name="q" placeholder="Search threads…" />
-    <button type="submit">Search</button>
-</form>
 
-<hr />
-
-<h1>Forum Categories</h1>
-
-<ul>
-    {% for category in categories %}
-    <li>
-        <a href="{% url 'forum:thread_list' category.slug %}">
-            <strong>{{ category.name }}</strong> </a
-        ><br />
-        <small>{{ category.description }}</small>
-    </li>
-
-    {% empty %}
-    <li>No categories yet.</li>
-    {% endfor %}
-</ul>
-
-<div>
-    <a href="{% url 'forum:tag_list' %}"> Browse Tags </a>
-</div>
-
-<div style="margin-top: 8px;">
-  <a href="{% url 'forum:course_list' %}">Browse Threads by Courses</a>
-</div>
-{% if user.is_authenticated and user.profile.is_moderator %}
-<div style="margin-top: 10px">
-    <a href="{% url 'forum:report_list' %}">View Reports</a>
-</div>
-{% endif %}
-
-<hr />
+<style>
+    .hover-shadow {
+        transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+    .hover-shadow:hover {
+        box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+        transform: translateY(-2px);
+    }
+</style>
 
 {% endblock %}

@@ -1,37 +1,53 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
 
-<h2>Search Results</h2>
-
-<form method="get">
-    <input
-        type="text"
-        name="q"
-        value="{{ query }}"
-        placeholder="Search threads..."
-    />
-    <button type="submit">Search</button>
-</form>
-
-<hr />
-
-{% if threads %}
-<ul>
-    {% for thread in threads %}
-    <li>
-        <a href="{% url 'forum:thread_detail' thread.pk %}">
-            {{ thread.title }}
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="mb-5">
+        <a href="{% url 'forum:category_list' %}" class="btn btn-outline-secondary mb-3">
+            <i class="bi bi-arrow-left"></i> Back to Forum
         </a>
-        <br />
-        <small>
-            {{ thread.category.name }} · 👍 {{ thread.likes.count }}
-        </small>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No matching threads.</p>
-{% endif %}
-<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
-<hr />
+        <h1 class="mb-4"><i class="bi bi-search"></i> Search Results</h1>
+    </div>
 
- {% endblock %}
+    <!-- Search Form -->
+    <div class="mb-5">
+        <form method="get" class="d-flex gap-2">
+            <input
+                type="text"
+                name="q"
+                value="{{ query }}"
+                class="form-control form-control-lg"
+                placeholder="Search threads..."
+            />
+            <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+        </form>
+    </div>
+
+    <!-- Results -->
+    {% if threads %}
+    <div>
+        <h5 class="mb-3">Found {{ threads|length }} thread(s)</h5>
+        <div class="list-group">
+            {% for thread in threads %}
+            <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h6 class="mb-1">{{ thread.title }}</h6>
+                        <small class="text-muted">
+                            <i class="bi bi-folder"></i> {{ thread.category.name }}
+                        </small>
+                    </div>
+                    <span class="badge bg-success"><i class="bi bi-hand-thumbs-up"></i> {{ thread.likes.count }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle"></i> No matching threads found. Try different search terms.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

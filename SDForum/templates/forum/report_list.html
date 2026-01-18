@@ -1,55 +1,101 @@
-{% extends "base.html" %} {% block content %}
-<h2>Pending Reports</h2>
+{% extends "base.html" %}
 
-{% if reports %}
-<ul>
-    {% for report in reports %}
-    <li>
-        <strong>Reported by:</strong> {{ report.reporter }} <br />
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="mb-5 pb-4 border-bottom">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Pending Reports</h2>
+            <span class="badge bg-danger">{{ reports|length }}</span>
+        </div>
+    </div>
 
-        {% if report.thread %}
-        <strong>Thread:</strong>
-        <a href="{% url 'forum:thread_detail' report.thread.pk %}">
-            {{ report.thread.title }}
-        </a>
-        {% endif %} {% if report.reply %}
-        <strong>Reply in:</strong>
-        <a href="{% url 'forum:thread_detail' report.reply.thread.pk %}">
-            {{ report.reply.thread.title }}
-        </a>
-        {% endif %}
+    <!-- Reports List -->
+    {% if reports %}
+    <div class="mb-5">
+        {% for report in reports %}
+        <div class="card border-0 shadow-sm mb-3">
+            <div class="card-body">
+                <!-- Report Info -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h6 class="mb-2">
+                            <i class="bi bi-person"></i>
+                            <strong>{{ report.reporter }}</strong>
+                        </h6>
+                        {% if report.status == "PENDING" %}
+                        <span class="badge bg-warning">Pending</span>
+                        {% else %}
+                        <span class="badge bg-success">Resolved</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-        <p><strong>Reason:</strong> {{ report.reason }}</p>
+                <!-- Reported Content -->
+                <div class="mb-3">
+                    {% if report.thread %}
+                    <p class="mb-2">
+                        <strong>Thread:</strong>
+                        <a href="{% url 'forum:thread_detail' report.thread.pk %}" class="text-decoration-none">
+                            {{ report.thread.title }}
+                        </a>
+                    </p>
+                    {% endif %}
+                    {% if report.reply %}
+                    <p class="mb-2">
+                        <strong>Reply in:</strong>
+                        <a href="{% url 'forum:thread_detail' report.reply.thread.pk %}" class="text-decoration-none">
+                            {{ report.reply.thread.title }}
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
 
-        {% if report.status == "PENDING" %}
-        <form
-            method="post"
-            action="{% url 'forum:report_delete' report.pk %}"
-            style="display: inline"
-        >
-            {% csrf_token %}
-            <button type="submit">Delete</button>
-        </form>
+                <!-- Reason -->
+                <div class="mb-3 p-3 bg-light rounded">
+                    <p class="mb-0"><strong>Reason:</strong></p>
+                    <p class="mb-0 text-muted">{{ report.reason }}</p>
+                </div>
 
-        <form
-            method="post"
-            action="{% url 'forum:report_safe' report.pk %}"
-            style="display: inline"
-        >
-            {% csrf_token %}
-            <button type="submit">Mark Safe</button>
-        </form>
-        {% else %}
-        <em>Resolved</em>
-        {% endif %}
+                <!-- Actions -->
+                {% if report.status == "PENDING" %}
+                <div class="d-flex gap-2">
+                    <form
+                        method="post"
+                        action="{% url 'forum:report_delete' report.pk %}"
+                        class="d-inline"
+                    >
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete content?');">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </form>
 
-        <hr />
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No pending reports</p>
-{% endif %} 
-<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
-<hr>
+                    <form
+                        method="post"
+                        action="{% url 'forum:report_safe' report.pk %}"
+                        class="d-inline"
+                    >
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-circle"></i> Mark Safe
+                        </button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-success" role="alert">
+        <i class="bi bi-check-circle"></i> No pending reports!
+    </div>
+    {% endif %}
+
+    <!-- Back Link -->
+    <a href="{% url 'forum:category_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Forum
+    </a>
+</div>
 {% endblock %}

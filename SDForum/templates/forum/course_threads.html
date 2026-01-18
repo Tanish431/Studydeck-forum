@@ -1,24 +1,38 @@
-{% extends "base.html" %} {% block content %}
+{% extends "base.html" %}
 
-<h2>Threads in {{course.code}}</h2>
+{% block content %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="mb-4">
+        <h2 class="mb-3"><i class="bi bi-book-fill"></i> Threads in {{ course.code }}</h2>
+    </div>
 
-{% if threads %}
-<ul>
-    {% for thread in threads %}
-    <li>
-        <a href="{% url 'forum:thread_detail' thread.pk %}">
-            {{ thread.title }}
+    <!-- Threads List -->
+    {% if threads %}
+    <div class="list-group mb-5">
+        {% for thread in threads %}
+        <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">{{ thread.title }}</h6>
+                    <small class="text-muted">
+                        <i class="bi bi-folder"></i> {{ thread.category.name }}
+                    </small>
+                </div>
+                <span class="badge bg-success"><i class="bi bi-hand-thumbs-up"></i> {{ thread.likes.count }}</span>
+            </div>
         </a>
-        <br />
-        <small>
-            {{ thread.category.name }} · 👍 {{ thread.likes.count }}
-        </small>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No threads with this tag.</p>
-{% endif %} 
-<a href="{% url 'forum:course_list' %}">← Back to Courses</a>
-<hr>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        <i class="bi bi-info-circle"></i> No threads with this course yet.
+    </div>
+    {% endif %}
+
+    <!-- Back Link -->
+    <a href="{% url 'forum:course_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back to Courses
+    </a>
+</div>
 {% endblock %}

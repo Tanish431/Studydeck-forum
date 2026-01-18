@@ -1,60 +1,131 @@
-{% extends "base.html" %} {% block content %}
-<div style="padding: 10px; border-bottom: 1px solid #ddd; margin-bottom: 20px;">
-    {% if user.is_authenticated %}
-    <span>Hi, {{ user.username }}</span> |
-    <a href="{% url 'account_logout' %}">Logout</a>
-    {% else %}
-    <a href="{% url 'account_login' %}">Login</a>
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- User Info Bar -->
+    <div class="border-bottom pb-3 mb-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                {% if user.is_authenticated %}
+                <span class="text-muted">Hi, <strong>{{ user.username }}</strong></span>
+                {% else %}
+                <span class="text-muted">Welcome to the Forum</span>
+                {% endif %}
+            </div>
+            <div>
+                {% if user.is_authenticated %}
+                <a href="{% url 'account_logout' %}" class="btn btn-outline-danger btn-sm">Logout</a>
+                {% else %}
+                <a href="{% url 'account_login' %}" class="btn btn-primary btn-sm">Login</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Bar -->
+    <div class="mb-4">
+        <form method="get" action="{% url 'forum:search_threads' %}" class="d-flex gap-2">
+            <input type="text" name="q" class="form-control" placeholder="Search threads…" />
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
+
+    <!-- Header Section -->
+    <div class="mb-4">
+        <h3 class="mb-3">{{ category.name }}</h3>
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <a href="{% url 'forum:thread_create' category.slug %}" class="btn btn-success">
+                <i class="bi bi-plus-lg"></i> Create Thread
+            </a>
+            
+            <!-- Sort Options -->
+            <div>
+                <span class="text-muted">Sort by:</span>
+                <div class="btn-group" role="group">
+                    <a href="?sort=latest" class="btn btn-sm {% if sort == 'latest' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                        Latest
+                    </a>
+                    <a href="?sort=popular" class="btn btn-sm {% if sort == 'popular' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                        Most Liked
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Threads List -->
+    <div class="mb-4">
+        {% if page_obj %}
+        <div class="list-group">
+            {% for thread in page_obj %}
+            <a href="{% url 'forum:thread_detail' thread.pk %}" class="list-group-item list-group-item-action">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <h5 class="mb-1">{{ thread.title }}</h5>
+                        <small class="text-muted">by <strong>{{ thread.author }}</strong> · {{ thread.created_at|date:"M d, Y H:i" }}</small>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            <i class="bi bi-info-circle"></i> No threads yet. Be the first to create one!
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav aria-label="Page navigation" class="mb-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1&sort={{ sort }}">First</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}">Previous</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">First</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Previous</span>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">
+                    Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                </span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&sort={{ sort }}">Next</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}&sort={{ sort }}">Last</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled">
+                <span class="page-link">Next</span>
+            </li>
+            <li class="page-item disabled">
+                <span class="page-link">Last</span>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
     {% endif %}
-</div>
-<form method="get" action="{% url 'forum:search_threads' %}">
-    <input type="text" name="q" placeholder="Search threads…" />
-    <button type="submit">Search</button>
-</form>
 
-<hr />
-<h2>{{ category.name }}</h2>
-
-<a href="{% url 'forum:thread_create' category.slug %}"> Create Thread </a>
-<br /><br />
-<div>
-  <strong>Sort by:</strong>
-
-  <a href="?sort=latest" {% if sort == "latest" %} style="font-weight:bold"{% endif %}>Latest</a>
-  |
-  <a href="?sort=popular"
-     {% if sort == "popular" %}style="font-weight:bold"{% endif %}>
-     Most Liked
-  </a>
-</div>
-
-<hr>
-
-<ul>
-    {% for thread in page_obj %}
-    <li>
-        <a href="{% url 'forum:thread_detail' thread.pk %}">
-            {{ thread.title }}
+    <!-- Back Link -->
+    <div class="mb-4">
+        <a href="{% url 'forum:category_list' %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Forum
         </a>
-        <br />
-        <small> by {{ thread.author }} · {{ thread.created_at }} </small>
-    </li>
-    {% empty %}
-    <li>No threads yet.</li>
-    {% endfor %}
-</ul>
-
-{% if page_obj.has_other_pages %}
-<div>
-    {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}&sort={{ sort }}">Prev</a>
-    {% endif %} Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}&sort={{ sort }}">Next</a>
-    {% endif %}
+    </div>
 </div>
-{% endif %}
-<a href="{% url 'forum:category_list' %}">← Back to Forum</a>
-<hr />
 
 {% endblock %}
