@@ -1,11 +1,39 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Access Denied</h2>
-<p>
-  This forum is restricted to
-  <strong>@pilani.bits-pilani.ac.in</strong>
-</p>
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 90vh;">
+    <div class="text-center" style="max-width: 500px;">
+        <!-- Icon -->
+        <div class="mb-4">
+            <i class="bi bi-exclamation-triangle" style="font-size: 4rem; color: #dc3545;"></i>
+        </div>
 
-<a href="{% url 'account_login' %}">login with another account</a>
+        <!-- Alert -->
+        <div class="alert alert-danger border-0 mb-4">
+            <h4 class="alert-heading"><i class="bi bi-lock"></i> Access Denied</h4>
+            <p class="mb-0">
+                This forum is restricted to members with institutional email addresses.
+            </p>
+        </div>
+
+        <!-- Details -->
+        <div class="card border-0 bg-light mb-4">
+            <div class="card-body">
+                <p class="mb-0">
+                    You must sign in with your <strong>@pilani.bits-pilani.ac.in</strong> email address to access this forum.
+                </p>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 justify-content-center flex-wrap">
+            <a href="{% url 'account_login' %}" class="btn btn-primary">
+                <i class="bi bi-arrow-clockwise"></i> Try Another Account
+            </a>
+            <a href="{% url 'forum:category_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-house"></i> Back Home
+            </a>
+        </div>
+    </div>
+</div>
 {% endblock %}

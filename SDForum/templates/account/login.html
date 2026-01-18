@@ -2,9 +2,31 @@
 {% load socialaccount %}
 
 {% block content %}
-<h2>Login</h2>
+<div class="container d-flex align-items-center justify-content-center" style="min-height: 90vh;">
+    <div class="text-center" style="max-width: 400px;">
+        <!-- Header -->
+        <h1 class="display-4 fw-bold mb-3"><i class="bi bi-chat-dots"></i></h1>
+        <h2 class="mb-2">Welcome to SDForum</h2>
+        <p class="text-muted mb-5">Sign in with your institutional Google account</p>
 
-<a href="{% provider_login_url 'google' %}">
-    Login with Google
-</a>
+        <!-- Login Card -->
+        <div class="card border-0 shadow-lg">
+            <div class="card-body p-5">
+                <a href="{% provider_login_url 'google' %}" class="btn btn-primary btn-lg w-100 mb-3">
+                    <i class="bi bi-google"></i> Login with Google
+                </a>
+                <p class="text-muted small mb-0">
+                    You must use a <strong>@pilani.bits-pilani.ac.in</strong> account to access this forum.
+                </p>
+            </div>
+        </div>
+
+        <!-- Info -->
+        <div class="mt-4 text-muted small">
+            <p>
+                <i class="bi bi-shield-check"></i> Your login is secure and verified by Google.
+            </p>
+        </div>
+    </div>
+</div>
 {% endblock %}
